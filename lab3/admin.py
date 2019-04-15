@@ -1,79 +1,78 @@
 #!/usr/bin/env python
 import pika
 import sys
+from termcolor import colored
 from threading import Thread
 
-exchange_1 = 'examination'
-exchange_2 = 'announcement'
+exchange_1 = "examination"
+exchange_2 = "announcement"
+uicolor = "cyan"
 
 def log(msg):
-    print('[{}] {}'.format(tech_name, msg))
+    print(colored("[{}]".format(admin_name), uicolor) + " {}".format(msg))
 
-def receive():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-    channel = connection.channel()
-
-    def callback(channel, method, properties, body):
-        if method.routing_key == '{}'.format(admin_name) and body == 'exit':
-            channel.stop_consuming()
-        else:
-            log('{} : {}'.format(method.routing_key, body))
-    
-    channel.exchange_declare(exchange=exchange_name,
-                             exchange_type='topic')        
+def setup_receiver():    
+    # examination exchange
+    channel.exchange_declare(
+        exchange = exchange_1,
+        exchange_type = "topic")       
          
-    result = channel.queue_declare('', exclusive=True)
+    result = channel.queue_declare("", exclusive = True)
     queue_name = result.method.queue
 
-    channel.queue_bind(exchange = exchange_1,
-                       queue = queue_name,
-                       routing_key = '*.result.*')
-    channel.queue_bind(exchange = exchange_1,
-                       queue = queue_name,
-                       routing_key = '*.order.*')
-                       
-    channel.queue_bind(exchange = exchange_1,
-                       queue = queue_name,
-                       routing_key = '{}'.format(admin_name))
+    channel.queue_bind(
+        exchange = exchange_1,
+        queue = queue_name,
+        routing_key = "*.result.*")
+
+    channel.queue_bind(
+        exchange = exchange_1,
+        queue = queue_name,
+        routing_key = "*.order.*")
                       
     channel.basic_consume(
-            queue = queue_name,
-            auto_ack = True,
-            on_message_callback = callback)
-            
-    channel.start_consuming()
+        queue = queue_name,
+        auto_ack = True,
+        on_message_callback = log_callback)
+
+    # announcement exchange
+    channel.exchange_declare(
+        exchange = exchange_2,
+        exchange_type = "fanout")
+    
+    # consuming on another thread    
+    consume_thread = Thread(target = channel.start_consuming)
+    consume_thread.start()
+
+def log_callback(channel, method, properties, body):
+    body = body.decode()
+    log("{} : {}".format(method.routing_key, body))
+    #channel.basic_ack(delivery_tag = method.delivery_tag)
 
 # -----------------------------------------------------------------
 
 if len(sys.argv) < 2:
-    exit('admin.py NAME')
+    exit("admin.py NAME")
 
 admin_name = sys.argv[1]
 
-receive_thread = Thread(target=receive)
-receive_thread.start()
-
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(host = "localhost"))
 channel = connection.channel()
 
+setup_receiver()
+print(colored("ADMIN {} started working".format(admin_name), uicolor))
+log("waiting for logs or message to broadcast")
+
 while True:
-    try:
-        input = raw_input('> ')
-        if input == 'exit':
-            raise KeyboardInterrupt
-        channel.basic_publish(
-            exchange = exchange_2,
-            routing_key = 'info',
-            body = '{} : {}'.format(admin_name, input))
-        log('Publish info : {}'.format(input))
-    except KeyboardInterrupt:
-        print('\n')
-        channel.basic_publish(
-            exchange = exchange_1,
-            routing_key = '{}'.format(admin_name),
-            body = 'exit',
-            properties = pika.BasicProperties(
-                delivery_mode = 2
-            ))
+    msg = input()
+    if msg == "exit":
         connection.close()
         exit()
+    channel.basic_publish(
+        exchange = exchange_2,
+        routing_key = "info",
+        body = "{} : {}".format(admin_name, msg))
+    log("announcement : {}".format(msg))
+
+# -----------------------------------------------------------------
