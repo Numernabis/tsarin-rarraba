@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+service Currency {
+  rpc DownloadCurrencies(SubscribedCurrencies) returns (stream CurrencyValue) {}
+}
+
+message SubscribedCurrencies
+{
+  CurrencyType nativeCurrency = 1;
+  repeated CurrencyType foreignCurrencies = 2;
+}
+
+enum CurrencyType {
+  PLN = 0;*
+  EUR = 1;
+  CHF = 2;
+}
+
+message CurrencyValue {
+  CurrencyType currency = 1;
+  float value = 2;
+}

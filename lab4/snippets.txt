@@ -1,0 +1,23 @@
+# generowanie plikow
+
+// ICE
+slice2java --output-dir generated slice\bank.ice
+
+// gRPC java
+protoc.exe -I=. --java_out=generated/ExchangeRateService --plugin=protoc-gen-grpc-java=protoc-gen-grpc-java-1.20.0-windows-x86_64.exe --grpc-java_out=generated/ExchangeRateService currency.proto
+
+// gRPC python
+python -m grpc_tools.protoc -I. --python_out=./src/agh/ExchangeRate --grpc_python_out=./src/agh/ExchangeRate currency.proto
+
+
+# uruchomienie
+
+// usługa walutowa
+python src\agh\ExchangeRate\service.py
+
+// bank (argumenty: id waluta inne_waluty)
+"C:\Program Files\Java\jdk-10.0.1\bin\java.exe" "-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.1\lib\idea_rt.jar=54090:C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.1\bin" -Dfile.encoding=UTF-8 -classpath "C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\out\production\sr-middleware-ice;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\ice-3.7.2.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\guava-22.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-core-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-stub-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-netty-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-context-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\protobuf-java-3.7.1.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-protobuf-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\opencensus-api-0.21.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-all-4.1.36.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-protobuf-lite-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-buffer-4.1.36.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-common-4.1.36.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-transport-4.1.6.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\opencensus-contrib-grpc-metrics-0.21.0.jar" agh.Bank.BankI 1 PLN EUR
+
+
+// klient (argumenty: id_banku)
+"C:\Program Files\Java\jdk-10.0.1\bin\java.exe" "-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.1\lib\idea_rt.jar=54136:C:\Program Files\JetBrains\IntelliJ IDEA 2019.1.1\bin" -Dfile.encoding=UTF-8 -classpath "C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\out\production\sr-middleware-ice;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\ice-3.7.2.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\guava-22.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-core-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-stub-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-netty-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-context-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\protobuf-java-3.7.1.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-protobuf-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\opencensus-api-0.21.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-all-4.1.36.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\grpc-protobuf-lite-1.20.0.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-buffer-4.1.36.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-common-4.1.36.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\netty-transport-4.1.6.Final.jar;C:\Users\Ludwik Ciechański\Desktop\sr-middleware-ice\lib\opencensus-contrib-grpc-metrics-0.21.0.jar" agh.Bank.Client 1
